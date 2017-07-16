@@ -1,0 +1,8 @@
+
+<h1>Регионы</h1>
+
+<ul> 
+    {% for region in all_regions  %}
+    <li> <a href="/region/{{region.id }}/"> {{ region.name }}</a></li>
+    {% endfor %}
+</ul>

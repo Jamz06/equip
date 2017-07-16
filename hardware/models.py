@@ -41,11 +41,11 @@ class Hard_Model(models.Model):
         verbose_name_plural = "Модели устройств"
 
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.CASCADE)
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=10)
     hard_type = models.ForeignKey(Types)
 
     def __str__(self):
-        return self.name
+        return self.manufacturer.name + " " + self.name
 
 class Region(models.Model):
     '''
@@ -57,6 +57,7 @@ class Region(models.Model):
     
     
     name = models.CharField("Регион", max_length=60)
+    
     def __str__(self):
         return self.name
 
@@ -67,7 +68,8 @@ class Toch_dost(models.Model):
     class Meta:
         verbose_name = "Точка доступа"
         verbose_name_plural = "Точки доступа"
-    
+
+
     region = models.ForeignKey(
         Region,
         on_delete=models.CASCADE,
@@ -87,6 +89,7 @@ class Ustr(models.Model):
         verbose_name = "Устройство"
         verbose_name_plural = "Устройства"
 
+
     toch_dost = models.ForeignKey(
         Toch_dost,
         verbose_name = "Узел свзяи"
@@ -103,8 +106,60 @@ class Ustr(models.Model):
     ip = models.GenericIPAddressField()
     mask = models.GenericIPAddressField("Маска", default="255.255.255.224")
     login = models.CharField("Логин", max_length=20, default="admin")
-    password = models.CharField("Пароль", max_length=200)
+    password = models.CharField("Пароль", max_length=32)
     config = models.FileField("Конфиг", storage=storage_configs, blank=True)
     
     def __str__(self):
         return self.toch_dost.region.name + ", " + self.toch_dost.name + " " + self.hard_type.hard_type + " " + self.model.name
+
+class Provider(models.Model):
+    '''
+    Провайдеры интернет
+    '''
+    class Meta:
+        verbose_name = "Провайдер"
+        verbose_name_plural = "Провайдеры"
+
+
+    name = models.CharField(max_length=20)
+
+    def __str__(self):
+        return self.name
+
+class Connection_type(models.Model):
+    class Meta:
+        verbose_name = "Тип подключения"
+
+    ustr = models.OneToOneField(
+        Ustr,
+        verbose_name = "Устройство"
+        )
+
+    TYPES = (
+        ('1', 'PPPOE'),
+        ('2', 'Static'),
+        ('3', 'VLAN'),
+        ('4', 'DHCP'),
+    )
+
+    connection_type = models.CharField(max_length=1, choices=TYPES)
+    details = models.CharField("Настройки подключения", max_length=255)
+
+class Advanced_GW(models.Model):
+    '''
+    Дополнительные параметры для маршрутизаторов
+    '''
+    class Meta:
+        verbose_name = "Сетевые параметры"
+        verbose_name_plural = "Сетевые параметры"
+
+
+    ustr = models.OneToOneField(
+        Ustr,
+        verbose_name = "Устройство"
+        )
+    ip = models.GenericIPAddressField("Внутренний IP")
+    white_ip = models.GenericIPAddressField("Белый IP")
+    pptp = models.CharField("PPTP", max_length=100)
+    pptp_password = models.CharField("PPTP Пароль", max_length=100)
+
